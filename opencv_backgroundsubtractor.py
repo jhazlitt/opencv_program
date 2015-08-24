@@ -8,6 +8,7 @@ import datetime
 conn = sqlite3.connect('/home/john/opencv_database.db')
 c = conn.cursor()
 passCode = c.execute('select password from passwords limit 1;')
+
 for passWd in passCode:
 	passWd = str(passWd)
 	passWd = passWd[3:len(passWd)-3]
@@ -26,14 +27,15 @@ motionDetectedFrameCount = 0
 
 i = datetime.datetime.now()
 startTime = i.hour + i.minute + i.second	
+
+# While the camera is recording
 while(1):
 	ret, frame = cap.read()
-#	print frame.shape	
 	fgmask = fgbg.apply(frame)
 	
 	kernel = np.ones((5,5),np.uint8)	
 	fgmask = cv2.erode(fgmask,kernel,iterations = 1)
-#	fgmask = cv2.dilate(fgmask,kernel,iterations = 1)
+	fgmask = cv2.dilate(fgmask,kernel,iterations = 2)
 	
 	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
 
@@ -69,23 +71,16 @@ while(1):
 		
 		centerX = (minX + maxX) / 2
 		centerY = (minY + maxY) / 2
-		cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,255,255),3)
-		cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,255,255),3)
-		cv2.imshow('Video',frame)
+		cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,000,255),2)
+		cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
+		#cv2.imshow('Video',frame)
 		motionDetectedFrameCount += 1
-		print "Frame count:"
-		print motionDetectedFrameCount
 	except:
 		continue
 	
 	endTime = i.hour + i.minute + i.second	
 	elapsedTime = endTime - startTime
-	print "Start time:"
-	print startTime
-	print "End time:"
-	print endTime
-	print "Elapsed time:"
-	print elapsedTime
+
 	if elapsedTime >= 000500:
 		out.release()
 		out = cv2.VideoWriter('' + str(i) + '.avi',fourcc, 12, (640,480))
