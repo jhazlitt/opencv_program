@@ -27,6 +27,7 @@ fgbg = cv2.BackgroundSubtractorMOG()
 # Get the starting time
 i = datetime.datetime.now()
 startTime = i.hour + i.minute + i.second	
+print "startTime: " + str(startTime)
 
 motionDetectedFrameCount = 0
 # While the camera is recording
@@ -34,7 +35,6 @@ while(1):
 	# Check for any keys that were pressed
 	k = cv2.waitKey(30) & 0xff
 	if k == ord('q'):
-		# Quit the program
 		break
 	elif k == ord('k'):
 		# Generate a new background
@@ -60,7 +60,13 @@ while(1):
 	cv2.imshow('Video',frame)
 	
 	# If there are no contours an error will be thrown, so try to run the following code
-	try:
+	print len(contours)
+	if len(contours) <= 1:
+		endTime = i.hour + i.minute + i.second	
+		print "endTime: " + str(endTime)
+		elapsedTime = endTime - startTime
+		print "elapsedTime: " + str(elapsedTime)
+	else:
 		cnt = contours[0]
 		x,y,w,h = cv2.boundingRect(cnt)
 		minX = x
@@ -82,18 +88,16 @@ while(1):
 		centerY = (minY + maxY) / 2
 		cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,000,255),2)
 		cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
-		#cv2.imshow('Video',frame)
 		motionDetectedFrameCount += 1
-	except:
-		continue
-	
-	endTime = i.hour + i.minute + i.second	
-	elapsedTime = endTime - startTime
 
-	if elapsedTime >= 000500:
-		out.release()
-		out = cv2.VideoWriter('' + str(i) + '.avi',fourcc, 12, (640,480))
-		startTime = i.hour + i.minute + i.second
+		endTime = i.hour + i.minute + i.second	
+		print "endTime: " + str(endTime)
+		elapsedTime = endTime - startTime
+		print "elapsedTime: " + str(elapsedTime)
+#	if elapsedTime >= 000500:
+#		out.release()
+#		out = cv2.VideoWriter('' + str(i) + '.avi',fourcc, 12, (640,480))
+#		startTime = i.hour + i.minute + i.second
 
 	cv2.imshow('Video',frame)
 	out.write(frame)
