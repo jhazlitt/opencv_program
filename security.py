@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import sqlite3
 import urllib
-import datetime
+import time
 
 # Get password for database
 conn = sqlite3.connect('/home/john/opencv_database.db')
@@ -17,17 +17,15 @@ for passWd in passCode:
 # Specify the video to be captured
 cap = cv2.VideoCapture("http://10.0.0.6:8090/videostream.asf?user=admin&pwd=" + passWd + "&resolution=32&rate=0&.mpg")
 
+# Get the starting time and starting video number
+startTime = time.time()
+videoNumber = 1
+
 # Codec and VideoWriter object for saving the video
-i = datetime.datetime.now()
 fourcc = cv2.cv.CV_FOURCC(*'XVID')
-out = cv2.VideoWriter('' + str(i) + '.avi',fourcc, 12, (640,480))
+out = cv2.VideoWriter(str(videoNumber) + '.avi',fourcc, 15, (640,480))
 
 fgbg = cv2.BackgroundSubtractorMOG()
-
-# Get the starting time
-i = datetime.datetime.now()
-startTime = i.hour + i.minute + i.second	
-print "startTime: " + str(startTime)
 
 motionDetectedFrameCount = 0
 # While the camera is recording
@@ -57,16 +55,8 @@ while(1):
 	# Find differences between the mask and frame, if any.  These are called contours
 	contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
 
-	cv2.imshow('Video',frame)
-	
-	# If there are no contours an error will be thrown, so try to run the following code
-	print len(contours)
-	if len(contours) <= 1:
-		endTime = i.hour + i.minute + i.second	
-		print "endTime: " + str(endTime)
-		elapsedTime = endTime - startTime
-		print "elapsedTime: " + str(elapsedTime)
-	else:
+	# If there are no contours an error will be thrown.  If there are contours:
+	if len(contours) != 0:
 		cnt = contours[0]
 		x,y,w,h = cv2.boundingRect(cnt)
 		minX = x
@@ -89,18 +79,42 @@ while(1):
 		cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,000,255),2)
 		cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
 		motionDetectedFrameCount += 1
+		motionDetected = True
 
-		endTime = i.hour + i.minute + i.second	
-		print "endTime: " + str(endTime)
-		elapsedTime = endTime - startTime
-		print "elapsedTime: " + str(elapsedTime)
-#	if elapsedTime >= 000500:
-#		out.release()
-#		out = cv2.VideoWriter('' + str(i) + '.avi',fourcc, 12, (640,480))
-#		startTime = i.hour + i.minute + i.second
+		# Record movement time of occurrence in log
+		f = open('log.txt','a')
+		f.write('Movement detected ' + time.asctime(time.localtime()) + '\n')
+		f.close()
+
+	endTime = time.time() 
+	print "endTime: " + str(endTime)
+	elapsedTime = endTime - startTime
+	print "elapsedTime: " + str(elapsedTime)
+
+	# Put a timestamp on the video frame
+	font = cv2.FONT_HERSHEY_SIMPLEX
+	cv2.putText(frame,str(time.asctime(time.localtime())),(0,30), font, 1, (0,0,0), 7)
+	cv2.putText(frame,str(time.asctime(time.localtime())),(0,30), font, 1, (255,255,255), 2)
 
 	cv2.imshow('Video',frame)
 	out.write(frame)
+
+	# Save the video after a specified number of seconds
+	if elapsedTime >= 60:
+		out.release()
+		
+		# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
+		if motionDetected == True:
+			motionDetected = False
+			videoNumber += 1
+
+		# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
+		if videoNumber == 150:
+			videoNumber = 1
+		else:
+			videoNumber += 1
+		out = cv2.VideoWriter(str(videoNumber) + '.avi',fourcc, 12, (640,480))
+		startTime = time.time()
 cap.release()
 out.release()
 cv2.destroyAllWindows()
