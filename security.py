@@ -3,6 +3,7 @@ import cv2
 import sqlite3
 import urllib
 import time
+import os
 
 # Get password for database
 conn = sqlite3.connect('/home/john/opencv_database.db')
@@ -28,6 +29,8 @@ out = cv2.VideoWriter(str(videoNumber) + '.avi',fourcc, 15, (640,480))
 fgbg = cv2.BackgroundSubtractorMOG()
 
 motionDetectedFrameCount = 0
+motionDetected = False
+mute = False
 # While the camera is recording
 while(1):
 	# Check for any keys that were pressed
@@ -37,6 +40,8 @@ while(1):
 	elif k == ord('k'):
 		# Generate a new background
 		fgbg = cv2.BackgroundSubtractorMOG()
+	elif k == ord('m'):
+		mute = not mute 
 	
 	# Read the current frame from the camera
 	ret, frame = cap.read()
@@ -80,6 +85,8 @@ while(1):
 		cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
 		motionDetectedFrameCount += 1
 		motionDetected = True
+		if mute == False:
+			os.system("aplay beep.wav")
 
 		# Record movement time of occurrence in log
 		f = open('log.txt','a')
@@ -93,8 +100,8 @@ while(1):
 
 	# Put a timestamp on the video frame
 	font = cv2.FONT_HERSHEY_SIMPLEX
-	cv2.putText(frame,str(time.asctime(time.localtime())),(0,30), font, 1, (0,0,0), 7)
-	cv2.putText(frame,str(time.asctime(time.localtime())),(0,30), font, 1, (255,255,255), 2)
+	cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
+	cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (255,255,255), 2)
 
 	cv2.imshow('Video',frame)
 	out.write(frame)
@@ -104,15 +111,15 @@ while(1):
 		out.release()
 		
 		# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
-		if motionDetected == True:
+
+		# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
+		if (videoNumber == 150) and (motionDetected == True):
+			motionDetected = False
+			videoNumber = 1
+		elif motionDetected == True:
 			motionDetected = False
 			videoNumber += 1
 
-		# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
-		if videoNumber == 150:
-			videoNumber = 1
-		else:
-			videoNumber += 1
 		out = cv2.VideoWriter(str(videoNumber) + '.avi',fourcc, 12, (640,480))
 		startTime = time.time()
 cap.release()
