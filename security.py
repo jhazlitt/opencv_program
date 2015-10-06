@@ -35,14 +35,30 @@ mute = False
 while(1):
 	# Check for any keys that were pressed
 	k = cv2.waitKey(30) & 0xff
-	if k == ord('q'):
+	if k == ord('q') or k == 27:
 		break
 	elif k == ord('k'):
 		# Generate a new background
 		fgbg = cv2.BackgroundSubtractorMOG()
 	elif k == ord('m'):
 		mute = not mute 
-	
+	elif k == ord('w'):
+		# Move camera up
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=0")
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+	elif k == ord('a'):
+		# Move camera left
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=4")
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+	elif k == ord('s'):
+		# Move camera down
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=2")
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+	elif k == ord('d'):
+		# Move camera right	
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=6")
+		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+
 	# Read the current frame from the camera
 	ret, frame = cap.read()
 
