@@ -15,15 +15,14 @@ class MyApp:
 		# Get any existing cameras from the database
 		cameras = c.execute('SELECT name FROM cameras;')
 		for camera in cameras:
-			buttonArray = []
 			camera = str(camera)
 			camera = camera[3:len(camera)-3]
 			# Add widgets for the camera
-			buttonArray.append(Button(self.frame, text="" + camera + "", command = lambda name=camera:self.printCameraName("" + name  + "")))
-			buttonArray.append(Button(self.frame, text="Remove", command = lambda name=camera:self.removeCamera("" + name + ""))) 
+			newCameraButton = Button(self.frame, text="" + camera + "", command = lambda name=camera:self.printCameraName("" + name  + ""))
+			newRemoveButton = Button(self.frame, text="Remove", command = lambda name=camera:self.removeCamera("" + name + ""))
 			# Position the widgets
-			buttonArray[len(buttonArray) - 2].grid(row=rowCount, sticky=E)
-			buttonArray[len(buttonArray) - 1].grid(row=rowCount, column=1)
+			newCameraButton.grid(row=rowCount, sticky=E)
+			newRemoveButton.grid(row=rowCount, column=1)
 			rowCount += 1
 			
 		# Add default widgets to the frame
