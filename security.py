@@ -16,7 +16,8 @@ def retrieveFromDatabase(value):
 
 def moveCamera(direction):
 	direction = str(direction)
-	urllib.urlopen("http://admin:" + password + "@" + ip + ":" + port + "/decoder_control.cgi?command=" + direction + "")
+	moveURL = "http://admin:" + password + "@" + ip + ":" + port + "/decoder_control.cgi?command=" + direction + ""
+	urllib.urlopen(moveURL)
 
 # Connect to database
 conn = sqlite3.connect('/home/john/opencv_database.db')
