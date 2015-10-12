@@ -5,18 +5,39 @@ import urllib
 import time
 import os
 
-# Get password for database
+# Connect to database
 conn = sqlite3.connect('/home/john/opencv_database.db')
 c = conn.cursor()
-passCode = c.execute('select password from passwords limit 1;')
+
+# Get camera ip from database
+value = c.execute('SELECT ip FROM cameras WHERE name = "camera1";')
+
+# Strip extra characters from the query result
+for ip in value:
+	ip = str(ip)
+	ip = ip[3:len(ip)-3]
+
+# Get port from database
+value = c.execute('SELECT port FROM cameras WHERE name = "camera1";')
+
+# Strip extra characters from the query result
+for port in value:
+	port = str(port)
+	port = port[3:len(port)-3]
+
+# Get password from database
+passCode = c.execute('SELECT password FROM cameras WHERE name = "camera1";')
 
 # Strip extra characters from the query result
 for passWd in passCode:
 	passWd = str(passWd)
 	passWd = passWd[3:len(passWd)-3]
 
+# Create camera url
+mpegURL = "http://" + ip + ":" + port + "/videostream.asf?user=admin&pwd=" + passWd + "&resolution=32&rate=0&.mpg"
+
 # Specify the video to be captured
-cap = cv2.VideoCapture("http://10.0.0.6:8090/videostream.asf?user=admin&pwd=" + passWd + "&resolution=32&rate=0&.mpg")
+cap = cv2.VideoCapture(mpegURL)
 
 # Get the starting time and starting video number
 startTime = time.time()
