@@ -61,23 +61,17 @@ while(1):
 	elif k == ord('w'):
 		# Move camera up
 		moveCamera(0)
-		# Stop camera
-		moveCamera(1)
 	elif k == ord('a'):
 		# Move camera left
 		moveCamera(4)
-		# Stop camera
-		moveCamera(1)
 	elif k == ord('s'):
 		# Move camera down
 		moveCamera(2)
-		# Stop camera
-		moveCamera(1)
 	elif k == ord('d'):
 		# Move camera right	
 		moveCamera(6)
-		# Stop camera
-		moveCamera(1)
+	# Stop any camera movement
+	moveCamera(1)
 
 	# Read the current frame from the camera
 	ret, frame = cap.read()
