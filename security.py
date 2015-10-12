@@ -5,36 +5,30 @@ import urllib
 import time
 import os
 
+def retrieveFromDatabase(value):
+	# Get value from database
+	result = c.execute('SELECT ' + value + ' FROM cameras WHERE name = "camera1";')
+	# Strip extra characters from the query result
+	for value in result:
+		value = str(value)
+		value = value[3:len(value)-3]
+	return value
+
+def moveCamera(direction):
+	direction = str(direction)
+	urllib.urlopen("http://admin:" + password + "@" + ip + ":" + port + "/decoder_control.cgi?command=" + direction + "")
+
 # Connect to database
 conn = sqlite3.connect('/home/john/opencv_database.db')
 c = conn.cursor()
 
-# Get camera ip from database
-value = c.execute('SELECT ip FROM cameras WHERE name = "camera1";')
-
-# Strip extra characters from the query result
-for ip in value:
-	ip = str(ip)
-	ip = ip[3:len(ip)-3]
-
-# Get port from database
-value = c.execute('SELECT port FROM cameras WHERE name = "camera1";')
-
-# Strip extra characters from the query result
-for port in value:
-	port = str(port)
-	port = port[3:len(port)-3]
-
-# Get password from database
-passCode = c.execute('SELECT password FROM cameras WHERE name = "camera1";')
-
-# Strip extra characters from the query result
-for passWd in passCode:
-	passWd = str(passWd)
-	passWd = passWd[3:len(passWd)-3]
+# Get camera values from database
+ip = retrieveFromDatabase("ip")
+port = retrieveFromDatabase("port")
+password = retrieveFromDatabase("password")
 
 # Create camera url
-mpegURL = "http://" + ip + ":" + port + "/videostream.asf?user=admin&pwd=" + passWd + "&resolution=32&rate=0&.mpg"
+mpegURL = "http://" + ip + ":" + port + "/videostream.asf?user=admin&pwd=" + password + "&resolution=32&rate=0&.mpg"
 
 # Specify the video to be captured
 cap = cv2.VideoCapture(mpegURL)
@@ -65,20 +59,24 @@ while(1):
 		mute = not mute 
 	elif k == ord('w'):
 		# Move camera up
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=0")
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+		moveCamera(0)
+		# Stop camera
+		moveCamera(1)
 	elif k == ord('a'):
 		# Move camera left
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=4")
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+		moveCamera(4)
+		# Stop camera
+		moveCamera(1)
 	elif k == ord('s'):
 		# Move camera down
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=2")
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+		moveCamera(2)
+		# Stop camera
+		moveCamera(1)
 	elif k == ord('d'):
 		# Move camera right	
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=6")
-		urllib.urlopen("http://admin:" + passWd + "@10.0.0.6:8090/decoder_control.cgi?command=1")
+		moveCamera(6)
+		# Stop camera
+		moveCamera(1)
 
 	# Read the current frame from the camera
 	ret, frame = cap.read()
