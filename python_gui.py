@@ -67,15 +67,23 @@ class MyApp:
 		# Remove all widgets from the frame
 		self.clearFrame()
 
+		result = c.execute('SELECT directory FROM save_directory;')
+		for directory in result:
+			directory = str(directory)
+			directory = directory[3:len(directory)-3]
+			 
 		# Add new widgets to the frame
 		self.saveDirectoryLabel = Label(self.frame, text="Save directory:")
 		self.saveDirectoryEntry = Entry(self.frame)
+		self.saveDirectoryEntry.insert(0, "" + directory + "")
+		self.saveButton = Button(self.frame, text="Save", command=self.writeDirectoryToDatabase)
 		self.backButton = Button(self.frame, text="Back", command=self.home)
 
 		# Position the widgets
 		self.saveDirectoryLabel.grid(row=0, sticky=E)
 		self.saveDirectoryEntry.grid(row=0, column=1)
-		self.backButton.grid(row=1, columnspan=2)
+		self.saveButton.grid(row=1, columnspan=2)
+		self.backButton.grid(row=2, columnspan=2)
 
 	def clearFrame(self):
 		for widget in self.frame.winfo_children():
@@ -91,6 +99,13 @@ class MyApp:
 		conn.commit()
 		self.home()
 
+	def writeDirectoryToDatabase(self):
+		directory = self.saveDirectoryEntry.get()
+		c.execute('DELETE FROM save_directory')
+		c.execute('INSERT INTO save_directory (directory) VALUES ("' + directory + '");')
+		conn.commit()
+		self.home()
+				
 	def removeCamera(self, name):
 		c.execute('DELETE FROM cameras WHERE name = "' + name + '";')
 		conn.commit()
