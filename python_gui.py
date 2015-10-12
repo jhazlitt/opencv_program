@@ -15,19 +15,26 @@ class MyApp:
 		# Get any existing cameras from the database
 		cameras = c.execute('SELECT name FROM cameras;')
 		for camera in cameras:
+			buttonArray = []
 			camera = str(camera)
 			camera = camera[3:len(camera)-3]
-			self.newCameraButton = Button(self.frame, text="" + camera + "")
-			self.newCameraButton.grid(row=rowCount)
+			# Add widgets for the camera
+			buttonArray.append(Button(self.frame, text="" + camera + "", command = lambda name=camera:self.printCameraName("" + name  + "")))
+			buttonArray.append(Button(self.frame, text="Remove", command = lambda name=camera:self.removeCamera("" + name + ""))) 
+			# Position the widgets
+			buttonArray[len(buttonArray) - 2].grid(row=rowCount, sticky=E)
+			buttonArray[len(buttonArray) - 1].grid(row=rowCount, column=1)
 			rowCount += 1
 			
 		# Add default widgets to the frame
 		self.addCameraButton = Button(self.frame, text="Add Camera", command=self.addCamera)
 		self.settingsButton = Button(self.frame, text="Settings", command=self.settings)
+		self.quitButton = Button(self.frame, text="Quit", command=self.closeWindow)
 
 		# Position the default widgets
-		self.addCameraButton.grid(row=rowCount)
-		self.settingsButton.grid(row=rowCount + 1)		
+		self.addCameraButton.grid(row=rowCount, columnspan=2)
+		self.settingsButton.grid(row=rowCount + 1, columnspan=2)	
+		self.quitButton.grid(row=rowCount + 2, columnspan=2)
 
 	def addCamera(self):
 		# Remove all widgets from the frame
@@ -84,6 +91,17 @@ class MyApp:
 		c.execute('INSERT INTO cameras (name, ip, port, password) VALUES ("' + name + '", "' + ip + '", "' + port + '", "' + password + '");')
 		conn.commit()
 		self.home()
+
+	def removeCamera(self, name):
+		c.execute('DELETE FROM cameras WHERE name = "' + name + '";')
+		conn.commit()
+		self.home()
+	
+	def printCameraName(self, name):
+		print name
+
+	def closeWindow(self):
+		root.destroy()
 
 # Connect to database
 conn = sqlite3.connect('/home/john/opencv_database.db')
