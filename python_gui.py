@@ -5,19 +5,30 @@ class MyApp:
 	def __init__(self, parent):
 		self.frame = Frame(parent)
 		self.frame.pack()
-		
 		self.home()
 
 	def home(self):
 		# Remove all widgets from the frame
 		self.clearFrame()
+		rowCount = 0
+	
+		# Get any existing cameras from the database
+		cameras = c.execute('SELECT name FROM cameras;')
+		for camera in cameras:
+			camera = str(camera)
+			camera = camera[3:len(camera)-3]
+			self.newCameraButton = Button(self.frame, text="" + camera + "")
+			self.newCameraButton.grid(row=rowCount)
+			rowCount += 1
+			
+		# Add default widgets to the frame
+		self.addCameraButton = Button(self.frame, text="Add Camera", command=self.addCamera)
+		self.settingsButton = Button(self.frame, text="Settings", command=self.settings)
 
-		# Add new widgets to the frame
-		self.testButton = Button(self.frame, text="text", command=self.addCamera)
+		# Position the default widgets
+		self.addCameraButton.grid(row=rowCount)
+		self.settingsButton.grid(row=rowCount + 1)		
 
-		# Position the widgets
-		self.testButton.grid(row=0)
-		
 	def addCamera(self):
 		# Remove all widgets from the frame
 		self.clearFrame()
@@ -32,6 +43,7 @@ class MyApp:
 		self.portEntry = Entry(self.frame)
 		self.passwordEntry = Entry(self.frame)
 		self.addCameraButton = Button(self.frame, text="Add", command=self.writeCameraToDatabase)
+		self.backButton = Button(self.frame, text="Back", command=self.home)
 		
 		# Position the widgets
 		self.nameLabel.grid(row=0, sticky=E) 
@@ -43,6 +55,21 @@ class MyApp:
 		self.portEntry.grid(row=2, column=1)
 		self.passwordEntry.grid(row=3, column=1)
 		self.addCameraButton.grid(row=4, columnspan=2)
+		self.backButton.grid(row=5, columnspan=2)
+
+	def settings(self):
+		# Remove all widgets from the frame
+		self.clearFrame()
+
+		# Add new widgets to the frame
+		self.saveDirectoryLabel = Label(self.frame, text="Save directory:")
+		self.saveDirectoryEntry = Entry(self.frame)
+		self.backButton = Button(self.frame, text="Back", command=self.home)
+
+		# Position the widgets
+		self.saveDirectoryLabel.grid(row=0, sticky=E)
+		self.saveDirectoryEntry.grid(row=0, column=1)
+		self.backButton.grid(row=1, columnspan=2)
 
 	def clearFrame(self):
 		for widget in self.frame.winfo_children():
