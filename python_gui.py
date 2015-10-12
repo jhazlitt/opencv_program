@@ -9,7 +9,7 @@ class MyApp:
 		self.testButton.grid(row=0)
 
 	def addCamera(self):
-		self.clearFrame
+		self.clearFrame()
 
 		self.nameLabel = Label(self.frame, text="Camera name:") 
 		self.ipLabel = Label(self.frame, text="IP address:")
