@@ -156,7 +156,6 @@ def runCamera(cameraName):
 			out.release()
 			
 			# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
-
 			# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
 			if (videoNumber == 150) and (motionDetected == True):
 				motionDetected = False
@@ -285,6 +284,8 @@ class MyApp:
 
 	def writeDirectoryToDatabase(self):
 		directory = self.saveDirectoryEntry.get()
+		if (directory[len(directory) - 1] != "/"):
+			directory += "/"
 		c.execute('DELETE FROM save_directory')
 		c.execute('INSERT INTO save_directory (directory) VALUES ("' + directory + '");')
 		conn.commit()
