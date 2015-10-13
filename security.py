@@ -49,8 +49,10 @@ def runCamera(cameraName):
 	videoNumber = 1
 
 	# Codec and VideoWriter object for saving the video
+	fileSaveDirectory = retrieveDirectoryFromDB()
+
 	fourcc = cv2.cv.CV_FOURCC(*'XVID')
-	out = cv2.VideoWriter(str(videoNumber) + '.avi',fourcc, 15, (640,480))
+	out = cv2.VideoWriter(str(fileSaveDirectory) + str(videoNumber) + '.avi',fourcc, 15, (640,480))
 
 	fgbg = cv2.BackgroundSubtractorMOG()
 
@@ -164,7 +166,7 @@ def runCamera(cameraName):
 				motionDetected = False
 				videoNumber += 1
 
-			out = cv2.VideoWriter(str(videoNumber) + '.avi',fourcc, 12, (640,480))
+			out = cv2.VideoWriter(str(fileSaveDirectory) + str(videoNumber) + '.avi',fourcc, 12, (640,480))
 			startTime = time.time()
 	cap.release()
 	out.release()
@@ -179,6 +181,15 @@ def retrieveFromDatabase(value, camera):
 		value = value[3:len(value)-3]
 	return value
 
+def retrieveDirectoryFromDB():
+	# Get value from database
+	result = c.execute('SELECT directory FROM save_directory;')
+	# Strip extra characters from the query result
+	for value in result:
+		value = str(value)
+		value = value[3:len(value)-3]
+	return value
+	
 def moveCamera(password, ip, port, direction):
 	direction = str(direction)
 	moveURL = "http://admin:" + password + "@" + ip + ":" + port + "/decoder_control.cgi?command=" + direction + ""
