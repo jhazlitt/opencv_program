@@ -27,6 +27,8 @@ import os
 from Tkinter import *
 
 def runCamera(cameraName):
+	movementDetectedTime = ""
+
 	# Connect to database
 	conn = sqlite3.connect('/home/john/opencv_database.db')
 	c = conn.cursor()
@@ -127,10 +129,11 @@ def runCamera(cameraName):
 				os.system("aplay beep.wav")
 
 			# Record movement time of occurrence in log
-			f = open('log.txt','a')
-			f.write('Movement detected ' + time.asctime(time.localtime()) + '\n')
-			f.close()
-
+			if (movementDetectedTime != time.asctime(time.localtime())):
+				movementDetectedTime = time.asctime(time.localtime())
+				c.execute('INSERT INTO log (timestamp) VALUES ("' + time.asctime(time.localtime()) + '");')
+				conn.commit()
+				
 		endTime = time.time() 
 		print "endTime: " + str(endTime)
 		elapsedTime = endTime - startTime
