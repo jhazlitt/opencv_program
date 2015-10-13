@@ -123,7 +123,7 @@ def runCamera(cameraName):
 			cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
 			motionDetectedFrameCount += 1
 			motionDetected = True
-			if mute == False:
+			if not mute:
 				os.system("aplay beep.wav")
 
 			# Record movement time of occurrence in log
@@ -140,6 +140,10 @@ def runCamera(cameraName):
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
 		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (255,255,255), 2)
+		
+		# Add MUTE text if the program is muted
+		if mute:
+			cv2.putText(frame,"MUTE",(555,475), font, 1, (0,0,255), 4)
 
 		cv2.imshow('Video',frame)
 		out.write(frame)
