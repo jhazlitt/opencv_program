@@ -104,6 +104,8 @@ def runCamera(cameraName):
 
 		# If there are no contours an error will be thrown.  If there are contours:
 		if len(contours) != 0:
+			motionDetectedFrameCount += 1
+			motionDetected = True
 			cnt = contours[0]
 			x,y,w,h = cv2.boundingRect(cnt)
 			minX = x
@@ -120,13 +122,12 @@ def runCamera(cameraName):
 					maxX = (x + w)
 				elif (y + h) > maxY:
 					maxY = (y + h)
-			
+			# Draw a target around the motion detected
 			centerX = (minX + maxX) / 2
 			centerY = (minY + maxY) / 2
 			cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,000,255),2)
 			cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
-			motionDetectedFrameCount += 1
-			motionDetected = True
+			# Play a sound to alert the user of motion detected
 			if not mute:
 				os.system("aplay beep.wav")
 
@@ -135,15 +136,16 @@ def runCamera(cameraName):
 				motionDetectedTimestamp = time.asctime(time.localtime())
 				logTimestamp()
 	
+		# Put text over video frame
 		# Put a timestamp on the video frame
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
 		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (255,255,255), 2)
-		
 		# Add MUTE text if the program is muted
 		if mute:
 			cv2.putText(frame,"MUTE",(555,475), font, 1, (0,0,255), 4)
 
+		# Show the frame, and write it to the .avi file
 		cv2.imshow('Video',frame)
 		out.write(frame)
 
