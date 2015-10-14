@@ -97,7 +97,7 @@ def runCamera(cameraName):
 		fgmask = fgbg.apply(frame)
 		kernel = np.ones((5,5),np.uint8)	
 		fgmask = cv2.erode(fgmask,kernel,iterations = 1)
-		fgmask = cv2.dilate(fgmask,kernel,iterations = 2)
+		fgmask = cv2.dilate(fgmask,kernel,iterations = 4)
 		
 		# Find differences between the mask and frame, if any.  These are called contours
 		contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
