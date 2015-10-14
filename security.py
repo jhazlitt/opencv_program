@@ -170,7 +170,7 @@ def runCamera(cameraName):
 			startTime = time.time()
 	cap.release()
 	out.release()
-	cv2.destroyAllWindows()
+	cv2.destroyWindow('Video')
 
 def logTimestamp():
 	queryText = 'INSERT INTO log (timestamp) VALUES ("' + time.asctime(time.localtime()) + '");'
@@ -316,6 +316,7 @@ class MyApp:
 	
 	def startCameraFeed(self, name):
 		runCamera(name)
+		self.closeWindow()
 	
 	def closeWindow(self):
 		root.destroy()
@@ -324,7 +325,6 @@ class MyApp:
 conn = sqlite3.connect('/home/john/opencv_database.db')
 c = conn.cursor()
 
-# Create application window
 root = Tk()
 root.title("security.py")
 root.minsize(width=640, height=480)
