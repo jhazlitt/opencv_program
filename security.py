@@ -27,7 +27,7 @@ import os
 from Tkinter import *
 
 def runCamera(cameraName):
-	movementDetectedTime = ""
+	motionDetectedTimestamp = ""
 
 	# Connect to database
 	conn = sqlite3.connect('/home/john/opencv_database.db')
@@ -60,7 +60,7 @@ def runCamera(cameraName):
 	motionDetected = False
 	mute = False
 	# While the camera is recording
-	while(1):
+	while(True):
 		# Check for any keys that were pressed
 		k = cv2.waitKey(30) & 0xff
 		if k == ord('q') or k == 27:
@@ -131,16 +131,11 @@ def runCamera(cameraName):
 				os.system("aplay beep.wav")
 
 			# Record movement time of occurrence in log
-			if (movementDetectedTime != time.asctime(time.localtime())):
-				movementDetectedTime = time.asctime(time.localtime())
+			if (motionDetectedTimestamp != time.asctime(time.localtime())):
+				motionDetectedTimestamp = time.asctime(time.localtime())
 				c.execute('INSERT INTO log (timestamp) VALUES ("' + time.asctime(time.localtime()) + '");')
 				conn.commit()
 				
-		endTime = time.time() 
-		print "endTime: " + str(endTime)
-		elapsedTime = endTime - startTime
-		print "elapsedTime: " + str(elapsedTime)
-
 		# Put a timestamp on the video frame
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
@@ -152,6 +147,10 @@ def runCamera(cameraName):
 
 		cv2.imshow('Video',frame)
 		out.write(frame)
+
+		# Find how long the routine has been running for
+		endTime = time.time() 
+		elapsedTime = endTime - startTime
 
 		# Save the video after a specified number of seconds
 		if elapsedTime >= 60:
@@ -174,7 +173,8 @@ def runCamera(cameraName):
 
 def retrieveFromDatabase(value, camera):
 	# Get value from database
-	result = c.execute('SELECT ' + value + ' FROM cameras WHERE name = "' + camera + '";')
+	queryText = 'SELECT ' + value + ' FROM cameras WHERE name = "' + camera + '";'
+	result = c.execute(queryText)
 	# Strip extra characters from the query result
 	for value in result:
 		value = str(value)
@@ -183,7 +183,8 @@ def retrieveFromDatabase(value, camera):
 
 def retrieveDirectoryFromDB():
 	# Get value from database
-	result = c.execute('SELECT directory FROM save_directory;')
+	queryText = 'SELECT directory FROM save_directory;'
+	result = c.execute(queryText)
 	# Strip extra characters from the query result
 	for value in result:
 		value = str(value)
