@@ -133,9 +133,8 @@ def runCamera(cameraName):
 			# Record movement time of occurrence in log
 			if (motionDetectedTimestamp != time.asctime(time.localtime())):
 				motionDetectedTimestamp = time.asctime(time.localtime())
-				c.execute('INSERT INTO log (timestamp) VALUES ("' + time.asctime(time.localtime()) + '");')
-				conn.commit()
-				
+				logTimestamp()
+	
 		# Put a timestamp on the video frame
 		font = cv2.FONT_HERSHEY_SIMPLEX
 		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
@@ -170,6 +169,11 @@ def runCamera(cameraName):
 	cap.release()
 	out.release()
 	cv2.destroyAllWindows()
+
+def logTimestamp():
+	queryText = 'INSERT INTO log (timestamp) VALUES ("' + time.asctime(time.localtime()) + '");'
+	c.execute(queryText)
+	conn.commit()
 
 def retrieveFromDatabase(value, camera):
 	# Get value from database
