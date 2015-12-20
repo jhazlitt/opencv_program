@@ -52,7 +52,7 @@ def runCamera(cameraName):
 	fileSaveDirectory = retrieveDirectoryFromDB()
 
 	fourcc = cv2.cv.CV_FOURCC(*'XVID')
-	out = cv2.VideoWriter(str(fileSaveDirectory) + str(videoNumber) + '.avi',fourcc, 15, (640,480))
+	out = getOutputFile(fileSaveDirectory, videoNumber, fourcc) 
 
 	fgbg = cv2.BackgroundSubtractorMOG()
 
@@ -63,6 +63,7 @@ def runCamera(cameraName):
 	while(True):
 		# Check for any keys that were pressed
 		k = cv2.waitKey(30) & 0xff
+
 		if k == ord('q') or k == 27:
 			break
 		elif k == ord('k'):
@@ -166,11 +167,15 @@ def runCamera(cameraName):
 				motionDetected = False
 				videoNumber += 1
 
-			out = cv2.VideoWriter(str(fileSaveDirectory) + str(videoNumber) + '.avi',fourcc, 12, (640,480))
+			out = getOutputFile(fileSaveDirectory, videoNumber, fourcc); 
 			startTime = time.time()
 	cap.release()
 	out.release()
 	cv2.destroyWindow('Video')
+
+def getOutputFile(fileSaveDirectory, videoNumber, fourcc):
+	outputFile = cv2.VideoWriter(str(fileSaveDirectory) + str(videoNumber) + '.avi',fourcc, 12, (640,480))
+	return outputFile
 
 def logTimestamp():
 	queryText = 'INSERT INTO log (timestamp) VALUES ("' + time.asctime(time.localtime()) + '");'
