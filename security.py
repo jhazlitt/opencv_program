@@ -250,10 +250,12 @@ class MyApp:
 		self.ipLabel = Label(self.frame, text="IP address:")
 		self.portLabel = Label(self.frame, text="Port:")
 		self.passwordLabel = Label(self.frame, text="Password:")
+		self.modelLabel = Label(self.frame, text="Model:")
 		self.nameEntry = Entry(self.frame)
 		self.ipEntry = Entry(self.frame)
 		self.portEntry = Entry(self.frame)
 		self.passwordEntry = Entry(self.frame)
+		self.modelEntry = Entry(self.frame)
 		self.addCameraButton = Button(self.frame, text="Add", command=self.writeCameraToDatabase)
 		self.backButton = Button(self.frame, text="Back", command=self.home)
 		
@@ -262,12 +264,14 @@ class MyApp:
 		self.ipLabel.grid(row=1, sticky=E)
 		self.portLabel.grid(row=2, sticky=E)
 		self.passwordLabel.grid(row=3, sticky=E)
+		self.modelLabel.grid(row=4, sticky=E)
 		self.nameEntry.grid(row=0, column=1)
 		self.ipEntry.grid(row=1, column=1)
 		self.portEntry.grid(row=2, column=1)
 		self.passwordEntry.grid(row=3, column=1)
-		self.addCameraButton.grid(row=4, columnspan=2)
-		self.backButton.grid(row=5, columnspan=2)
+		self.modelEntry.grid(row=4, column=1)	
+		self.addCameraButton.grid(row=5, columnspan=2)
+		self.backButton.grid(row=6, columnspan=2)
 
 	def settings(self):
 		# Remove all widgets from the frame
@@ -300,8 +304,9 @@ class MyApp:
 		ip = self.ipEntry.get()
 		port = self.portEntry.get()
 		password = self.passwordEntry.get()
-		
-		c.execute('INSERT INTO cameras (name, ip, port, password) VALUES ("' + name + '", "' + ip + '", "' + port + '", "' + password + '");')
+		model = self.modelEntry.get()
+	
+		c.execute('INSERT INTO cameras (name, ip, port, password, model) VALUES ("' + name + '", "' + ip + '", "' + port + '", "' + password + '", "' + model + '");')
 		conn.commit()
 		self.home()
 
