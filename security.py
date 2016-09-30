@@ -30,7 +30,7 @@ def runCamera(cameraName):
 	motionDetectedTimestamp = ""
 
 	# Connect to database
-	conn = sqlite3.connect('/home/john/opencv_database.db')
+	conn = sqlite3.connect('/home/pc/opencv_database.db')
 	c = conn.cursor()
 
 	# Get camera values from database
@@ -50,7 +50,7 @@ def runCamera(cameraName):
 
 	# Codec and VideoWriter object for saving the video
 	fileSaveDirectory = retrieveDirectoryFromDB()
-
+	print fileSaveDirectory
 	fourcc = cv2.cv.CV_FOURCC(*'XVID')
 	out = getOutputFile(fileSaveDirectory, videoNumber, fourcc) 
 
@@ -133,9 +133,9 @@ def runCamera(cameraName):
 				os.system("aplay beep.wav")
 
 			# Record movement time of occurrence in log
-			if (motionDetectedTimestamp != time.asctime(time.localtime())):
-				motionDetectedTimestamp = time.asctime(time.localtime())
-				logTimestamp()
+			#if (motionDetectedTimestamp != time.asctime(time.localtime())):
+			#	motionDetectedTimestamp = time.asctime(time.localtime())
+			#	logTimestamp()
 	
 		# Put text over video frame
 		# Put a timestamp on the video frame
@@ -155,12 +155,12 @@ def runCamera(cameraName):
 		elapsedTime = endTime - startTime
 
 		# Save the video after a specified number of seconds
-		if elapsedTime >= 60:
+		if elapsedTime >= 10:
 			out.release()
-			
+			os.system('cd /home/pc/google_drive && grive sync')	
 			# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
 			# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
-			if (videoNumber == 150) and (motionDetected == True):
+			if (videoNumber == 2000) and (motionDetected == True):
 				motionDetected = False
 				videoNumber = 1
 			elif motionDetected == True:
@@ -171,6 +171,7 @@ def runCamera(cameraName):
 			startTime = time.time()
 	cap.release()
 	out.release()
+	os.system('cd /home/pc/google_drive && grive sync')	
 	cv2.destroyWindow('Video')
 
 def getOutputFile(fileSaveDirectory, videoNumber, fourcc):
@@ -332,7 +333,7 @@ class MyApp:
 		root.destroy()
 
 # Connect to database
-conn = sqlite3.connect('/home/john/opencv_database.db')
+conn = sqlite3.connect('/home/pc/opencv_database.db')
 c = conn.cursor()
 
 root = Tk()
