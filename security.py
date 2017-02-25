@@ -156,7 +156,6 @@ def runCamera(cameraName):
 			# Save the video after a specified number of seconds
 			if elapsedTime >= 4:
 				out.release()
-				#os.system('cd /home/pc/google_drive && grive sync')	
 				# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
 				# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
 				if (videoNumber == 2000) and (motionDetected == True):
@@ -170,7 +169,6 @@ def runCamera(cameraName):
 				startTime = time.time()
 		cap.release()
 		out.release()
-		#os.system('cd /home/pc/google_drive && grive sync')	
 		cv2.destroyWindow('Video')
 	except:
 		pass
