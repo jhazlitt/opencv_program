@@ -1,4 +1,4 @@
-# Commands to move the camera
+# Commands to move the Tenvis cameras
 #PTZ_STOP=1
 #TILT_UP=0
 #TILT_UP_STOP=1
@@ -27,152 +27,153 @@ import os
 from Tkinter import *
 
 def runCamera(cameraName):
-	motionDetectedTimestamp = ""
+	try:	
+		motionDetectedTimestamp = ""
 
-	# Connect to database
-	conn = sqlite3.connect('/home/pc/opencv_database.db')
-	c = conn.cursor()
+		# Connect to database
+		conn = sqlite3.connect('/home/pc/opencv_database.db')
+		c = conn.cursor()
 
-	# Get camera values from database
-	ip = retrieveFromDatabase("ip", cameraName)
-	port = retrieveFromDatabase("port", cameraName)
-	password = retrieveFromDatabase("password", cameraName)
+		# Get camera values from database
+		ip = retrieveFromDatabase("ip", cameraName)
+		port = retrieveFromDatabase("port", cameraName)
+		password = retrieveFromDatabase("password", cameraName)
 
-	# Create camera url
-	mpegURL = "http://" + ip + ":" + port + "/videostream.asf?user=admin&pwd=" + password + "&resolution=32&rate=0&.mpg"
+		# Create camera url
+		mpegURL = "http://" + ip + ":" + port + "/videostream.asf?user=admin&pwd=" + password + "&resolution=32&rate=0&.mpg"
 
-	# Specify the video to be captured
-	cap = cv2.VideoCapture(mpegURL)
+		# Specify the video to be captured
+		cap = cv2.VideoCapture(mpegURL)
 
-	# Get the starting time and starting video number
-	startTime = time.time()
-	videoNumber = 1
+		# Get the starting time and starting video number
+		startTime = time.time()
+		videoNumber = 1
 
-	# Codec and VideoWriter object for saving the video
-	fileSaveDirectory = retrieveDirectoryFromDB()
-	print fileSaveDirectory
-	fourcc = cv2.cv.CV_FOURCC(*'XVID')
-	out = getOutputFile(fileSaveDirectory, videoNumber, fourcc) 
+		# Codec and VideoWriter object for saving the video
+		fileSaveDirectory = retrieveDirectoryFromDB()
+		fourcc = cv2.cv.CV_FOURCC(*'XVID')
+		out = getOutputFile(fileSaveDirectory, videoNumber, fourcc) 
 
-	fgbg = cv2.BackgroundSubtractorMOG()
+		fgbg = cv2.BackgroundSubtractorMOG()
 
-	motionDetectedFrameCount = 0
-	motionDetected = False
-	mute = False
-	# While the camera is recording
-	while(True):
-		# Check for any keys that were pressed
-		k = cv2.waitKey(30) & 0xff
+		motionDetectedFrameCount = 0
+		motionDetected = False
+		mute = True
+		# While the camera is recording
+		while(True):
+			# Check for any keys that were pressed
+			k = cv2.waitKey(30) & 0xff
+			if k == ord('q') or k == 27:
+				break
+			elif k == ord('k'):
+				# Generate a new background
+				fgbg = cv2.BackgroundSubtractorMOG()
+			elif k == ord('m'):
+				mute = not mute 
+			elif k == ord('w'):
+				# Move camera up
+				moveCamera(password, ip, port, 0)
+			elif k == ord('a'):
+				# Move camera left
+				moveCamera(password, ip, port, 4)
+			elif k == ord('s'):
+				# Move camera down
+				moveCamera(password, ip, port, 2)
+			elif k == ord('d'):
+				# Move camera right	
+				moveCamera(password, ip, port, 6)
+			# Stop any camera movement
+			moveCamera(password, ip, port, 1)
 
-		if k == ord('q') or k == 27:
-			break
-		elif k == ord('k'):
-			# Generate a new background
-			fgbg = cv2.BackgroundSubtractorMOG()
-		elif k == ord('m'):
-			mute = not mute 
-		elif k == ord('w'):
-			# Move camera up
-			moveCamera(password, ip, port, 0)
-		elif k == ord('a'):
-			# Move camera left
-			moveCamera(password, ip, port, 4)
-		elif k == ord('s'):
-			# Move camera down
-			moveCamera(password, ip, port, 2)
-		elif k == ord('d'):
-			# Move camera right	
-			moveCamera(password, ip, port, 6)
-		# Stop any camera movement
-		moveCamera(password, ip, port, 1)
+			# Read the current frame from the camera
+			ret, frame = cap.read()
 
-		# Read the current frame from the camera
-		ret, frame = cap.read()
+			# If there has been motion detected for more than a specified number of frames, generate a new mask
+			if motionDetectedFrameCount > 1:
+				fgbg = cv2.BackgroundSubtractorMOG()
+				motionDetectedFrameCount = 0
 
-		# If there has been motion detected for more than a specified number of frames, generate a new mask
-		if motionDetectedFrameCount > 1:
-			fgbg = cv2.BackgroundSubtractorMOG()
-			motionDetectedFrameCount = 0
+			# Apply the mask to the frame
+			fgmask = fgbg.apply(frame)
+			kernel = np.ones((5,5),np.uint8)	
+			fgmask = cv2.erode(fgmask,kernel,iterations = 1)
+			fgmask = cv2.dilate(fgmask,kernel,iterations = 4)
+			
+			# Find differences between the mask and frame, if any.  These are called contours
+			contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
 
-		# Apply the mask to the frame
-		fgmask = fgbg.apply(frame)
-		kernel = np.ones((5,5),np.uint8)	
-		fgmask = cv2.erode(fgmask,kernel,iterations = 1)
-		fgmask = cv2.dilate(fgmask,kernel,iterations = 4)
+			# If there are no contours an error will be thrown.  If there are contours:
+			if len(contours) != 0:
+				motionDetectedFrameCount += 1
+				motionDetected = True
+				cnt = contours[0]
+				x,y,w,h = cv2.boundingRect(cnt)
+				minX = x
+				minY = y
+				maxX = x + w
+				maxY = y + h
+				for contour in contours:
+					x,y,w,h = cv2.boundingRect(contour)
+					if x < minX:
+						minX = x
+					elif y < minY:
+						minY = y
+					elif (x + w) > maxX:
+						maxX = (x + w)
+					elif (y + h) > maxY:
+						maxY = (y + h)
+				# Draw a target around the motion detected
+				centerX = (minX + maxX) / 2
+				centerY = (minY + maxY) / 2
+				cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,000,255),2)
+				cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
+				# Play a sound to alert the user of motion detected
+				if not mute:
+					os.system("aplay beep.wav")
+
+				# Record movement time of occurrence in log
+				#if (motionDetectedTimestamp != time.asctime(time.localtime())):
+				#	motionDetectedTimestamp = time.asctime(time.localtime())
+				#	logTimestamp()
 		
-		# Find differences between the mask and frame, if any.  These are called contours
-		contours, hierarchy = cv2.findContours(fgmask,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
+			# Put text over video frame
+			# Put a timestamp on the video frame
+			font = cv2.FONT_HERSHEY_SIMPLEX
+			cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
+			cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (255,255,255), 2)
+			# Add MUTE text if the program is muted
+			if mute:
+				cv2.putText(frame,"MUTE",(555,475), font, 1, (0,0,255), 4)
 
-		# If there are no contours an error will be thrown.  If there are contours:
-		if len(contours) != 0:
-			motionDetectedFrameCount += 1
-			motionDetected = True
-			cnt = contours[0]
-			x,y,w,h = cv2.boundingRect(cnt)
-			minX = x
-			minY = y
-			maxX = x + w
-			maxY = y + h
-			for contour in contours:
-				x,y,w,h = cv2.boundingRect(contour)
-				if x < minX:
-					minX = x
-				elif y < minY:
-					minY = y
-				elif (x + w) > maxX:
-					maxX = (x + w)
-				elif (y + h) > maxY:
-					maxY = (y + h)
-			# Draw a target around the motion detected
-			centerX = (minX + maxX) / 2
-			centerY = (minY + maxY) / 2
-			cv2.rectangle(frame,(centerX,centerY),(centerX,centerY),(255,000,255),2)
-			cv2.rectangle(frame,(minX,minY),(maxX,maxY),(255,000,255),2)
-			# Play a sound to alert the user of motion detected
-			if not mute:
-				os.system("aplay beep.wav")
+			# Show the frame, and write it to the .avi file
+			cv2.imshow('Video',frame)
+			out.write(frame)
 
-			# Record movement time of occurrence in log
-			#if (motionDetectedTimestamp != time.asctime(time.localtime())):
-			#	motionDetectedTimestamp = time.asctime(time.localtime())
-			#	logTimestamp()
-	
-		# Put text over video frame
-		# Put a timestamp on the video frame
-		font = cv2.FONT_HERSHEY_SIMPLEX
-		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (0,0,0), 7)
-		cv2.putText(frame,str(time.asctime(time.localtime())),(0,25), font, 1, (255,255,255), 2)
-		# Add MUTE text if the program is muted
-		if mute:
-			cv2.putText(frame,"MUTE",(555,475), font, 1, (0,0,255), 4)
+			# Find how long the routine has been running for
+			endTime = time.time() 
+			elapsedTime = endTime - startTime
 
-		# Show the frame, and write it to the .avi file
-		cv2.imshow('Video',frame)
-		out.write(frame)
+			# Save the video after a specified number of seconds
+			if elapsedTime >= 4:
+				out.release()
+				#os.system('cd /home/pc/google_drive && grive sync')	
+				# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
+				# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
+				if (videoNumber == 2000) and (motionDetected == True):
+					motionDetected = False
+					videoNumber = 1
+				elif motionDetected == True:
+					motionDetected = False
+					videoNumber += 1
 
-		# Find how long the routine has been running for
-		endTime = time.time() 
-		elapsedTime = endTime - startTime
-
-		# Save the video after a specified number of seconds
-		if elapsedTime >= 10:
-			out.release()
-			os.system('cd /home/pc/google_drive && grive sync')	
-			# If there was motion detected during the recording, move on to the next video number.  Otherwise write over this video
-			# If there are more than a specified number of videos, the count is set back to 1 so they can all be written over
-			if (videoNumber == 2000) and (motionDetected == True):
-				motionDetected = False
-				videoNumber = 1
-			elif motionDetected == True:
-				motionDetected = False
-				videoNumber += 1
-
-			out = getOutputFile(fileSaveDirectory, videoNumber, fourcc); 
-			startTime = time.time()
-	cap.release()
-	out.release()
-	os.system('cd /home/pc/google_drive && grive sync')	
-	cv2.destroyWindow('Video')
+				out = getOutputFile(fileSaveDirectory, videoNumber, fourcc); 
+				startTime = time.time()
+		cap.release()
+		out.release()
+		#os.system('cd /home/pc/google_drive && grive sync')	
+		cv2.destroyWindow('Video')
+	except:
+		pass
 
 def getOutputFile(fileSaveDirectory, videoNumber, fourcc):
 	outputFile = cv2.VideoWriter(str(fileSaveDirectory) + str(videoNumber) + '.avi',fourcc, 12, (640,480))
